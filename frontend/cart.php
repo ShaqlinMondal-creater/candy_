@@ -175,14 +175,29 @@
     <?php include("inc_files/footer.php"); ?>
 
     <script>
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchCartFromAPI();
-        });
-
-
         let cart = [];
         const token = localStorage.getItem('token') || '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCartFromAPI();
+
+            // Handle mobile menu safely
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                    menuIcon.classList.toggle('hidden');
+                    closeIcon.classList.toggle('hidden');
+                });
+            }
+
+            // Clear cart handler
+            document.getElementById('clear-cart').addEventListener('click', clearCart);
+        });
 
         function fetchCartFromAPI() {
             if (!token) {
@@ -193,9 +208,7 @@
 
             fetch('../api/get_user_cart.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
             })
             .then(res => res.json())
@@ -219,26 +232,19 @@
             });
         }
 
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            menuIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
-        });
-
-        // Cart functionality
-        // let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
         function updateCartCount() {
             const count = cart.reduce((total, item) => total + item.quantity, 0);
-            document.getElementById('cart-count').textContent = count;
-            document.getElementById('cart-count-mobile').textContent = count;
+            const cartCount = document.getElementById('cart-count');
+            const cartCountMobile = document.getElementById('cart-count-mobile');
+
+            if (cartCount) cartCount.textContent = count;
+            if (cartCountMobile) cartCountMobile.textContent = count;
         }
 
         function updateCartSummary() {
             const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
             document.getElementById('cart-summary').textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''} in your cart`;
         }
-
 
         function calculateTotals() {
             const subtotal = cart.reduce((total, item) => total + item.total_price, 0);
@@ -261,7 +267,6 @@
             }
         }
 
-
         function renderCartItems() {
             const cartItemsContainer = document.getElementById('cart-items');
             const emptyCart = document.getElementById('empty-cart');
@@ -280,41 +285,29 @@
                 <div class="p-6 cart-item">
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0">
-                            <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg">
+                            <img src="${item.image}" alt="${item.product_name}" class="w-20 h-20 object-cover rounded-lg">
                         </div>
-                        
                         <div class="flex-1 min-w-0">
                             <a href="product_detail.php?id=${item.product_id}" class="text-lg font-semibold text-gray-900 hover:text-pink-600 transition-colors">
                                 ${item.product_name}
                             </a>
-
-                            <p class="text-gray-600 text-sm mt-1">${item.category}</p>
                             <p class="text-pink-600 font-semibold mt-2">$${item.price}</p>
                         </div>
-                        
                         <div class="flex items-center space-x-3">
                             <div class="flex items-center border border-gray-300 rounded-lg">
-                                <button onclick="updateQuantity('${item.id}', ${item.quantity - 1})" class="p-2 hover:bg-gray-50 transition-colors">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                    </svg>
+                                <button onclick="updateQuantity(${item.cart_id}, ${item.quantity - 1})" class="p-2 hover:bg-gray-50 transition-colors">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                                 </button>
                                 <span class="px-4 py-2 min-w-[60px] text-center">${item.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', ${item.quantity + 1})" class="p-2 hover:bg-gray-50 transition-colors">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
+                                <button onclick="updateQuantity(${item.cart_id}, ${item.quantity + 1})" class="p-2 hover:bg-gray-50 transition-colors">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
                                 </button>
                             </div>
-                            
-                            <button onclick="removeItem('${item.id}')" class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
+                            <button onclick="removeItem(${item.cart_id})" class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M4 7h16"></path></svg>
                             </button>
                         </div>
                     </div>
-                    
                     <div class="mt-4 flex justify-between items-center">
                         <span class="text-gray-600">Subtotal:</span>
                         <span class="font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</span>
@@ -329,48 +322,74 @@
                 return;
             }
 
-            const item = cart.find(i => i.cart_id == cartId);
-            if (item) {
-                item.quantity = newQuantity;
-                item.total_price = item.quantity * parseFloat(item.price);
-                renderCartItems();
-                updateCartCount();
-                updateCartSummary();
-                calculateTotals();
-
-                // Optional: Add API call to update quantity here
-            }
+            fetch('../api/update_cart_quantity.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart_id: cartId, quantity: newQuantity })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const item = cart.find(i => i.cart_id === cartId);
+                    if (item) {
+                        item.quantity = newQuantity;
+                        item.total_price = item.quantity * parseFloat(item.price);
+                        renderCartItems();
+                        updateCartCount();
+                        updateCartSummary();
+                        calculateTotals();
+                    }
+                } else {
+                    alert("Failed to update quantity.");
+                }
+            })
+            .catch(err => {
+                console.error('Quantity update failed:', err);
+            });
         }
 
         function removeItem(cartId) {
-            cart = cart.filter(item => item.cart_id != cartId);
-            renderCartItems();
-            updateCartCount();
-            updateCartSummary();
-            calculateTotals();
-
-            // Optional: Add API call to remove item here
+            fetch('../api/delete_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart_id: cartId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    cart = cart.filter(item => item.cart_id !== cartId);
+                    renderCartItems();
+                    updateCartCount();
+                    updateCartSummary();
+                    calculateTotals();
+                } else {
+                    alert("Failed to remove item.");
+                }
+            })
+            .catch(err => {
+                console.error('Remove item failed:', err);
+            });
         }
 
         function clearCart() {
             if (confirm('Are you sure you want to clear your cart?')) {
-                cart = [];
-                localStorage.setItem('cart', JSON.stringify(cart));
-                renderCartItems();
-                updateCartCount();
-                updateCartSummary();
-                calculateTotals();
+                // Clear cart one by one via API if needed
+                const cartIds = cart.map(i => i.cart_id);
+                Promise.all(cartIds.map(id =>
+                    fetch('../api/delete_cart.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cart_id: id })
+                    })
+                )).then(() => {
+                    cart = [];
+                    renderCartItems();
+                    updateCartCount();
+                    updateCartSummary();
+                    calculateTotals();
+                });
             }
         }
-
-        // Clear cart button
-        document.getElementById('clear-cart').addEventListener('click', clearCart);
-
-        // Initialize cart
-        updateCartCount();
-        updateCartSummary();
-        renderCartItems();
-        calculateTotals();
     </script>
 </body>
 </html>
