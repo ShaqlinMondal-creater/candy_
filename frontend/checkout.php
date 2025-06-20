@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Sweet Dreams</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -474,7 +476,7 @@
         });
 
         // Cart functionality
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let cart = []; // Will be filled from localStorage or API
         let selectedPaymentMethod = 'card';
         let selectedUpiMethod = '';
 
@@ -632,33 +634,80 @@
             submitBtn.disabled = true;
             
             // Simulate processing time
-            setTimeout(() => {
-                // Store order data
-                const orderData = {
-                    orderId: 'SD' + Date.now(),
-                    items: cart,
-                    totals: calculateTotals(),
-                    paymentMethod: selectedPaymentMethod,
-                    upiMethod: selectedUpiMethod,
-                    customerInfo: {
-                        firstName: document.getElementById('firstName').value,
-                        lastName: document.getElementById('lastName').value,
-                        email: document.getElementById('email').value,
-                        phone: document.getElementById('phone').value,
-                        address: document.getElementById('address').value,
-                        city: document.getElementById('city').value,
-                        state: document.getElementById('state').value,
-                        zipCode: document.getElementById('zipCode').value
-                    },
-                    orderDate: new Date().toISOString()
-                };
-                
-                localStorage.setItem('lastOrder', JSON.stringify(orderData));
-                localStorage.removeItem('cart'); // Clear cart after successful order
-                
-                // Redirect to success page
-                window.location.href = 'order-success.html';
-            }, 2000);
+            // Show confirmation popup before processing
+const totals = calculateTotals();
+
+const fullName = `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`;
+const address = `${document.getElementById('address').value}, ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('zipCode').value}`;
+
+let paymentLabel = selectedPaymentMethod.toUpperCase();
+if (selectedPaymentMethod === 'upi') {
+    paymentLabel += selectedUpiMethod ? ` (${selectedUpiMethod.toUpperCase()})` : '';
+}
+
+let itemHtml = '';
+document.querySelectorAll('#order-items > div').forEach(div => {
+    itemHtml += div.outerHTML;
+});
+
+Swal.fire({
+    title: 'Confirm Your Order',
+    html: `
+        <div class="text-left">
+            <p><strong>Name:</strong> ${fullName}</p>
+            <p><strong>Email:</strong> ${document.getElementById('email').value}</p>
+            <p><strong>Phone:</strong> ${document.getElementById('phone').value}</p>
+            <p><strong>Address:</strong> ${address}</p>
+            <p><strong>Payment Method:</strong> ${paymentLabel}</p>
+            <hr class="my-3" />
+            <div class="max-h-48 overflow-y-auto">${itemHtml}</div>
+            <hr class="my-3" />
+            <p><strong>Subtotal:</strong> ${document.getElementById('checkout-subtotal').textContent}</p>
+            <p><strong>Tax:</strong> ${document.getElementById('checkout-tax').textContent}</p>
+            <p><strong>Shipping:</strong> ${document.getElementById('checkout-shipping').textContent}</p>
+            ${selectedPaymentMethod === 'cod' ? `<p><strong>COD Charges:</strong> $4.00</p>` : ''}
+            <p class="text-lg mt-2"><strong>Total:</strong> ${document.getElementById('checkout-total').textContent}</p>
+        </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Confirm Order',
+    cancelButtonText: 'Review Again',
+    customClass: {
+        confirmButton: 'bg-pink-600 text-white px-4 py-2 rounded',
+        cancelButton: 'bg-gray-200 text-gray-700 px-4 py-2 rounded'
+    }
+}).then(result => {
+    if (result.isConfirmed) {
+        // Simulate final order placement
+        const orderData = {
+            orderId: 'SD' + Date.now(),
+            items: cart,
+            totals,
+            paymentMethod: selectedPaymentMethod,
+            upiMethod: selectedUpiMethod,
+            customerInfo: {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                zipCode: document.getElementById('zipCode').value
+            },
+            orderDate: new Date().toISOString()
+        };
+
+        localStorage.setItem('lastOrder', JSON.stringify(orderData));
+        localStorage.removeItem('cart');
+        window.location.href = 'order-success.html';
+    } else {
+        // Re-enable the submit button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
         });
 
         // Card number formatting
@@ -685,5 +734,92 @@
         renderOrderItems();
         calculateTotals();
     </script>
+
+
+<script>
+    // Get data from localStorage
+    const name = localStorage.getItem('name');
+    const email = localStorage.getItem('email');
+    const mobile = localStorage.getItem('mobile');
+
+    if (name) {
+        // Split the full name into first and last (if possible)
+        const nameParts = name.trim().split(' ');
+        document.getElementById('firstName').value = nameParts[0] || '';
+        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+    }
+
+    if (email) {
+        document.getElementById('email').value = email;
+    }
+
+    if (mobile) {
+        document.getElementById('phone').value = mobile;
+    }
+</script>
+<script>
+    async function loadOrderSummary() {
+        const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
+
+        if (!token) {
+            console.error("Token not found.");
+            return;
+        }
+
+        try {
+            const response = await fetch('../api/get_user_cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token })
+            });
+
+            const data = await response.json();
+
+            if (data.status === "success") {
+                const cart = data.cart;
+                const subtotal = parseFloat(data.total_amount);
+                const tax = +(subtotal * 0.12).toFixed(2);
+                const shipping = subtotal >= 500 ? 0 : 50;
+                const total = +(subtotal + tax + shipping).toFixed(2);
+
+                // Update values in the DOM
+                document.getElementById('checkout-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+                document.getElementById('checkout-tax').textContent = `$${tax.toFixed(2)}`;
+                document.getElementById('checkout-shipping').textContent = shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`;
+                document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
+
+                // Populate order items
+                const orderItemsContainer = document.getElementById('order-items');
+                orderItemsContainer.innerHTML = '';
+
+                cart.forEach(item => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = "flex items-center space-x-4";
+
+                    itemEl.innerHTML = `
+                        <img src="${item.image}" alt="${item.product_name}" class="w-16 h-16 object-cover rounded-lg">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-semibold text-gray-900">${item.product_name}</h4>
+                            <p class="text-sm text-gray-600">Qty: ${item.quantity}</p>
+                        </div>
+                        <div class="text-sm font-semibold text-gray-900">$${parseFloat(item.total_price).toFixed(2)}</div>
+                    `;
+
+                    orderItemsContainer.appendChild(itemEl);
+                });
+
+            } else {
+                console.error("API Error:", data.message || "Failed to fetch cart");
+            }
+
+        } catch (error) {
+            console.error("Fetch error:", error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadOrderSummary);
+</script>
 </body>
 </html>

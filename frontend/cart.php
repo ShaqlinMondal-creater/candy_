@@ -146,7 +146,7 @@
                                 </p>
                             </div>
                             
-                            <button class="w-full btn-gradient text-white py-4 rounded-full font-semibold mb-4">
+                            <button id="checkout-btn" class="w-full btn-gradient text-white py-4 rounded-full font-semibold mb-4">
                                 Proceed to Checkout
                             </button>
                             
@@ -173,6 +173,11 @@
 
     <!-- Footer -->
     <?php include("inc_files/footer.php"); ?>
+    <script>
+        document.getElementById('checkout-btn').addEventListener('click', function () {
+            window.location.href = 'checkout.php';
+        });
+    </script>
 
     <script>
         let cart = [];
