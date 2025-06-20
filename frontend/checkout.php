@@ -462,364 +462,312 @@
     <!-- Footer -->
     <?php include("inc_files/footer.php"); ?>
 
-    <script>
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const menuIcon = document.getElementById('menu-icon');
-        const closeIcon = document.getElementById('close-icon');
-
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            menuIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
-        });
-
-        // Cart functionality
-        let cart = []; // Will be filled from localStorage or API
-        let selectedPaymentMethod = 'card';
-        let selectedUpiMethod = '';
-
-        function updateCartCount() {
-            const count = cart.reduce((total, item) => total + item.quantity, 0);
-            document.getElementById('cart-count').textContent = count;
-            document.getElementById('cart-count-mobile').textContent = count;
-        }
-
-        function calculateTotals() {
-            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-            const shippingCost = subtotal >= 25 ? 0 : 5.99;
-            const tax = subtotal * 0.08;
-            const codCharges = selectedPaymentMethod === 'cod' ? 4.00 : 0;
-            const total = subtotal + shippingCost + tax + codCharges;
-
-            document.getElementById('checkout-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('checkout-shipping').textContent = shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`;
-            document.getElementById('checkout-tax').textContent = `$${tax.toFixed(2)}`;
-            document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
-
-            // Show/hide COD charges
-            const codChargesElement = document.getElementById('cod-charges');
-            if (selectedPaymentMethod === 'cod') {
-                codChargesElement.classList.remove('hidden');
-            } else {
-                codChargesElement.classList.add('hidden');
-            }
-
-            return { subtotal, shippingCost, tax, codCharges, total };
-        }
-
-        function renderOrderItems() {
-            const orderItemsContainer = document.getElementById('order-items');
-            
-            if (cart.length === 0) {
-                orderItemsContainer.innerHTML = '<p class="text-gray-500 text-center">No items in cart</p>';
-                return;
-            }
-
-            orderItemsContainer.innerHTML = cart.map(item => `
-                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded-lg">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">${item.name}</p>
-                        <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
-                    </div>
-                    <p class="text-sm font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
-                </div>
-            `).join('');
-        }
-
-        // Payment method tab functionality
-        document.querySelectorAll('.payment-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Remove active class from all tabs
-                document.querySelectorAll('.payment-tab').forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
-                this.classList.add('active');
-                
-                // Hide all payment content
-                document.querySelectorAll('.payment-content').forEach(content => content.classList.remove('active'));
-                
-                // Show selected payment content
-                const paymentType = this.dataset.payment;
-                selectedPaymentMethod = paymentType;
-                document.getElementById(`${paymentType}-payment`).classList.add('active');
-                
-                // Recalculate totals to show/hide COD charges
-                calculateTotals();
-            });
-        });
-
-        // UPI option selection
-        document.querySelectorAll('.upi-option').forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove selected class from all UPI options
-                document.querySelectorAll('.upi-option').forEach(opt => opt.classList.remove('selected'));
-                // Add selected class to clicked option
-                this.classList.add('selected');
-                selectedUpiMethod = this.dataset.upi;
-            });
-        });
-
-        // Form validation and submission
-        document.getElementById('checkout-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Basic form validation
-            const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
-            let isValid = true;
-            
-            // Add payment-specific required fields
-            if (selectedPaymentMethod === 'card') {
-                requiredFields.push('cardNumber', 'expiryMonth', 'expiryYear', 'cvv', 'cardholderName');
-            } else if (selectedPaymentMethod === 'upi') {
-                if (!selectedUpiMethod && !document.getElementById('upiId').value.trim()) {
-                    alert('Please select a UPI payment method or enter your UPI ID.');
-                    return;
-                }
-            }
-            
-            requiredFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (field && !field.value.trim()) {
-                    field.style.borderColor = '#ef4444';
-                    isValid = false;
-                } else if (field) {
-                    field.style.borderColor = '#d1d5db';
-                }
-            });
-            
-            if (!isValid) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-            
-            // Email validation
-            const email = document.getElementById('email').value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address.');
-                document.getElementById('email').style.borderColor = '#ef4444';
-                return;
-            }
-            
-            // Card-specific validation
-            if (selectedPaymentMethod === 'card') {
-                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-                if (cardNumber.length < 13 || cardNumber.length > 19) {
-                    alert('Please enter a valid card number.');
-                    document.getElementById('cardNumber').style.borderColor = '#ef4444';
-                    return;
-                }
-                
-                const cvv = document.getElementById('cvv').value;
-                if (cvv.length < 3 || cvv.length > 4) {
-                    alert('Please enter a valid CVV.');
-                    document.getElementById('cvv').style.borderColor = '#ef4444';
-                    return;
-                }
-            }
-            
-            // If validation passes, simulate order processing
-            const submitBtn = document.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            
-            submitBtn.innerHTML = `
-                <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
-            `;
-            submitBtn.disabled = true;
-            
-            // Simulate processing time
-            // Show confirmation popup before processing
-const totals = calculateTotals();
-
-const fullName = `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`;
-const address = `${document.getElementById('address').value}, ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('zipCode').value}`;
-
-let paymentLabel = selectedPaymentMethod.toUpperCase();
-if (selectedPaymentMethod === 'upi') {
-    paymentLabel += selectedUpiMethod ? ` (${selectedUpiMethod.toUpperCase()})` : '';
-}
-
-let itemHtml = '';
-document.querySelectorAll('#order-items > div').forEach(div => {
-    itemHtml += div.outerHTML;
-});
-
-Swal.fire({
-    title: 'Confirm Your Order',
-    html: `
-        <div class="text-left">
-            <p><strong>Name:</strong> ${fullName}</p>
-            <p><strong>Email:</strong> ${document.getElementById('email').value}</p>
-            <p><strong>Phone:</strong> ${document.getElementById('phone').value}</p>
-            <p><strong>Address:</strong> ${address}</p>
-            <p><strong>Payment Method:</strong> ${paymentLabel}</p>
-            <hr class="my-3" />
-            <div class="max-h-48 overflow-y-auto">${itemHtml}</div>
-            <hr class="my-3" />
-            <p><strong>Subtotal:</strong> ${document.getElementById('checkout-subtotal').textContent}</p>
-            <p><strong>Tax:</strong> ${document.getElementById('checkout-tax').textContent}</p>
-            <p><strong>Shipping:</strong> ${document.getElementById('checkout-shipping').textContent}</p>
-            ${selectedPaymentMethod === 'cod' ? `<p><strong>COD Charges:</strong> $4.00</p>` : ''}
-            <p class="text-lg mt-2"><strong>Total:</strong> ${document.getElementById('checkout-total').textContent}</p>
-        </div>
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Confirm Order',
-    cancelButtonText: 'Review Again',
-    customClass: {
-        confirmButton: 'bg-pink-600 text-white px-4 py-2 rounded',
-        cancelButton: 'bg-gray-200 text-gray-700 px-4 py-2 rounded'
-    }
-}).then(result => {
-    if (result.isConfirmed) {
-        // Simulate final order placement
-        const orderData = {
-            orderId: 'SD' + Date.now(),
-            items: cart,
-            totals,
-            paymentMethod: selectedPaymentMethod,
-            upiMethod: selectedUpiMethod,
-            customerInfo: {
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                city: document.getElementById('city').value,
-                state: document.getElementById('state').value,
-                zipCode: document.getElementById('zipCode').value
-            },
-            orderDate: new Date().toISOString()
-        };
-
-        localStorage.setItem('lastOrder', JSON.stringify(orderData));
-        localStorage.removeItem('cart');
-        window.location.href = 'order-success.html';
-    } else {
-        // Re-enable the submit button
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-});
-
-        });
-
-        // Card number formatting
-        document.getElementById('cardNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        });
-
-        // CVV numeric only
-        document.getElementById('cvv').addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        });
-
-        // Phone number formatting
-        document.getElementById('phone').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            let formattedValue = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-            e.target.value = formattedValue;
-        });
-
-        // Initialize
-        updateCartCount();
-        renderOrderItems();
-        calculateTotals();
-    </script>
-
-
 <script>
-    // Get data from localStorage
+    let cart = []; // Global cart
+
+    let selectedPaymentMethod = 'card';
+    let selectedUpiMethod = '';
+
+    function updateCartCount() {
+        const count = cart.reduce((total, item) => total + item.quantity, 0);
+        document.getElementById('cart-count').textContent = count;
+        document.getElementById('cart-count-mobile').textContent = count;
+    }
+
+    function renderOrderItems() {
+        const orderItemsContainer = document.getElementById('order-items');
+
+        if (cart.length === 0) {
+            orderItemsContainer.innerHTML = '<p class="text-gray-500 text-center">No items in cart</p>';
+            return;
+        }
+
+        orderItemsContainer.innerHTML = cart.map(item => `
+            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded-lg">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">${item.name}</p>
+                    <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
+                </div>
+                <p class="text-sm font-semibold text-gray-900">$${(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+        `).join('');
+    }
+
+    function calculateTotals() {
+        const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        const shippingCost = subtotal >= 25 ? 0 : 5.99;
+        const tax = +(subtotal * 0.08).toFixed(2);
+        const codCharges = selectedPaymentMethod === 'cod' ? 4.00 : 0;
+        const total = subtotal + shippingCost + tax + codCharges;
+
+        document.getElementById('checkout-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('checkout-shipping').textContent = shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`;
+        document.getElementById('checkout-tax').textContent = `$${tax.toFixed(2)}`;
+        document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
+
+        document.getElementById('cod-charges').classList.toggle('hidden', selectedPaymentMethod !== 'cod');
+
+        return { subtotal, shippingCost, tax, codCharges, total };
+    }
+
+    async function loadOrderSummary() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const response = await fetch('../api/get_user_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+
+            const data = await response.json();
+            if (data.status === "success") {
+                console.log("Cart API sample:", data.cart[0]);
+
+                cart = data.cart.map(item => ({
+                    cart_row_id: item.cart_id || item.id || item.row_id || '', // 👈 choose based on console log result
+                    product_id: item.product_id,
+                    name: item.product_name,
+                    quantity: parseInt(item.quantity),
+                    price: parseFloat(item.price || item.unit_price || item.total_price / item.quantity),
+                    image: item.image
+                }));
+
+                renderOrderItems();
+                calculateTotals();
+                updateCartCount();
+            } else {
+                console.error("Cart API error:", data.message);
+            }
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    }
+
+    document.querySelectorAll('.payment-tab').forEach(tab => {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('.payment-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.payment-content').forEach(content => content.classList.remove('active'));
+
+            selectedPaymentMethod = this.dataset.payment;
+            document.getElementById(`${selectedPaymentMethod}-payment`).classList.add('active');
+            calculateTotals();
+        });
+    });
+
+    document.querySelectorAll('.upi-option').forEach(option => {
+        option.addEventListener('click', function () {
+            document.querySelectorAll('.upi-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedUpiMethod = this.dataset.upi;
+        });
+    });
+
+    document.getElementById('checkout-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg> Processing...`;
+        submitBtn.disabled = true;
+
+        if (cart.length === 0) {
+            Swal.fire('Cart is empty', 'Please add some items before placing your order.', 'warning');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
+        if (selectedPaymentMethod === 'card') {
+            requiredFields.push('cardNumber', 'expiryMonth', 'expiryYear', 'cvv', 'cardholderName');
+        } else if (selectedPaymentMethod === 'upi' && !selectedUpiMethod && !document.getElementById('upiId').value.trim()) {
+            Swal.fire('UPI Required', 'Please select or enter a UPI ID.', 'warning');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        let isValid = true;
+        requiredFields.forEach(id => {
+            const field = document.getElementById(id);
+            if (!field.value.trim()) {
+                field.style.borderColor = '#ef4444';
+                isValid = false;
+            } else {
+                field.style.borderColor = '#d1d5db';
+            }
+        });
+
+        if (!isValid) {
+            Swal.fire('Missing Fields', 'Please fill in all required fields.', 'error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        const email = document.getElementById('email').value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Swal.fire('Invalid Email', 'Please enter a valid email address.', 'error');
+            document.getElementById('email').style.borderColor = '#ef4444';
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        if (selectedPaymentMethod === 'card') {
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            if (cardNumber.length < 13 || cardNumber.length > 19) {
+                Swal.fire('Invalid Card Number', 'Card number must be between 13 and 19 digits.', 'error');
+                document.getElementById('cardNumber').style.borderColor = '#ef4444';
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            const cvv = document.getElementById('cvv').value;
+            if (cvv.length < 3 || cvv.length > 4) {
+                Swal.fire('Invalid CVV', 'CVV must be 3 or 4 digits.', 'error');
+                document.getElementById('cvv').style.borderColor = '#ef4444';
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+        }
+
+        const totals = calculateTotals();
+        const fullName = `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`;
+        const address = `${document.getElementById('address').value}, ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('zipCode').value}`;
+        const notes = document.getElementById('deliveryNotes').value;
+
+        let paymentLabel = selectedPaymentMethod.toUpperCase();
+        if (selectedPaymentMethod === 'upi') {
+            paymentLabel += selectedUpiMethod ? ` (${selectedUpiMethod.toUpperCase()})` : '';
+        }
+
+        let itemHtml = cart.map(item => `
+            <div class="flex items-center space-x-3 p-2 border-b">
+                <img src="${item.image}" alt="${item.name}" class="w-10 h-10 object-cover rounded">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-800">${item.name}</p>
+                    <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
+                </div>
+                <p class="text-sm font-semibold text-gray-800">$${(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+        `).join('');
+
+        Swal.fire({
+            title: 'Confirm Your Order',
+            html: `
+                <div class="text-left">
+                    <p><strong>Name:</strong> ${fullName}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p><strong>Phone:</strong> ${document.getElementById('phone').value}</p>
+                    <p><strong>Address:</strong> ${address}</p>
+                    <p><strong>Payment Method:</strong> ${paymentLabel}</p>
+                    <p><strong>Delivery Notes:</strong> ${notes || '-'}</p>
+                    <hr class="my-3" />
+                    <div class="max-h-48 overflow-y-auto">${itemHtml}</div>
+                    <hr class="my-3" />
+                    <p><strong>Subtotal:</strong> ${document.getElementById('checkout-subtotal').textContent}</p>
+                    <p><strong>Tax:</strong> ${document.getElementById('checkout-tax').textContent}</p>
+                    <p><strong>Shipping:</strong> ${document.getElementById('checkout-shipping').textContent}</p>
+                    ${selectedPaymentMethod === 'cod' ? `<p><strong>COD Charges:</strong> $4.00</p>` : ''}
+                    <p class="text-lg mt-2"><strong>Total:</strong> ${document.getElementById('checkout-total').textContent}</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Confirm Order',
+            cancelButtonText: 'Review Again',
+            customClass: {
+                confirmButton: 'bg-pink-600 text-white px-4 py-2 rounded',
+                cancelButton: 'bg-gray-200 text-gray-700 px-4 py-2 rounded'
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                const token = localStorage.getItem('token') || '';
+                const shipping_address = `${document.getElementById('address').value}, ${document.getElementById('city').value}, ${document.getElementById('state').value} - ${document.getElementById('zipCode').value}`;
+                const shipping_charge = totals.shippingCost;
+                const payment_method = selectedPaymentMethod.toUpperCase();
+                const cartIds = cart
+                .map(item => item.cart_row_id)
+                .filter(id => id !== '' && id !== undefined && id !== null)
+                .join(',');
+
+
+
+                fetch('../api/create_order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token,
+                        cart_id: cartIds,
+                        shipping_address,
+                        shipping_charge,
+                        payment_method
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        localStorage.removeItem('cart');
+                        localStorage.setItem('order_response', JSON.stringify(data.order));
+                        window.location.href = 'order-success.php';
+                    } else {
+                        Swal.fire('Order Failed', data.message || 'Something went wrong.', 'error');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Could not connect to server.', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+
+            }
+
+        });
+    });
+
+    document.getElementById('cardNumber').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
+    });
+
+    document.getElementById('cvv').addEventListener('input', function (e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+
+    document.getElementById('phone').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        e.target.value = value.replace(/(\d{3})(\d{3})(\d{0,4})/, '($1) $2-$3');
+    });
+
+    // Prefill contact info if available
     const name = localStorage.getItem('name');
     const email = localStorage.getItem('email');
     const mobile = localStorage.getItem('mobile');
 
     if (name) {
-        // Split the full name into first and last (if possible)
         const nameParts = name.trim().split(' ');
         document.getElementById('firstName').value = nameParts[0] || '';
         document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
     }
 
-    if (email) {
-        document.getElementById('email').value = email;
-    }
-
-    if (mobile) {
-        document.getElementById('phone').value = mobile;
-    }
-</script>
-<script>
-    async function loadOrderSummary() {
-        const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
-
-        if (!token) {
-            console.error("Token not found.");
-            return;
-        }
-
-        try {
-            const response = await fetch('../api/get_user_cart.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token })
-            });
-
-            const data = await response.json();
-
-            if (data.status === "success") {
-                const cart = data.cart;
-                const subtotal = parseFloat(data.total_amount);
-                const tax = +(subtotal * 0.12).toFixed(2);
-                const shipping = subtotal >= 500 ? 0 : 50;
-                const total = +(subtotal + tax + shipping).toFixed(2);
-
-                // Update values in the DOM
-                document.getElementById('checkout-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-                document.getElementById('checkout-tax').textContent = `$${tax.toFixed(2)}`;
-                document.getElementById('checkout-shipping').textContent = shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`;
-                document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
-
-                // Populate order items
-                const orderItemsContainer = document.getElementById('order-items');
-                orderItemsContainer.innerHTML = '';
-
-                cart.forEach(item => {
-                    const itemEl = document.createElement('div');
-                    itemEl.className = "flex items-center space-x-4";
-
-                    itemEl.innerHTML = `
-                        <img src="${item.image}" alt="${item.product_name}" class="w-16 h-16 object-cover rounded-lg">
-                        <div class="flex-1">
-                            <h4 class="text-sm font-semibold text-gray-900">${item.product_name}</h4>
-                            <p class="text-sm text-gray-600">Qty: ${item.quantity}</p>
-                        </div>
-                        <div class="text-sm font-semibold text-gray-900">$${parseFloat(item.total_price).toFixed(2)}</div>
-                    `;
-
-                    orderItemsContainer.appendChild(itemEl);
-                });
-
-            } else {
-                console.error("API Error:", data.message || "Failed to fetch cart");
-            }
-
-        } catch (error) {
-            console.error("Fetch error:", error);
-        }
-    }
+    if (email) document.getElementById('email').value = email;
+    if (mobile) document.getElementById('phone').value = mobile;
 
     document.addEventListener('DOMContentLoaded', loadOrderSummary);
 </script>
+
 </body>
 </html>
