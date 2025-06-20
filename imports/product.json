@@ -1,0 +1,242 @@
+[
+  {
+    "id": 1,
+    "name": "Rainbow Gummy Bears",
+    "price": 12.99,
+    "image": "https://images.pexels.com/photos/5946965/pexels-photo-5946965.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.9,
+    "description": "Soft, chewy gummy bears in 12 fruity flavors",
+    "category": "gummy",
+    "badge": "popular"
+  },
+  {
+    "id": 2,
+    "name": "Chocolate Truffles Box",
+    "price": 24.99,
+    "image": "https://images.pexels.com/photos/918327/pexels-photo-918327.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 5.0,
+    "description": "Premium handcrafted chocolate truffles",
+    "category": "chocolate",
+    "badge": "premium"
+  },
+  {
+    "id": 3,
+    "name": "Cotton Candy Clouds",
+    "price": 8.99,
+    "image": "https://images.pexels.com/photos/1038914/pexels-photo-1038914.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.7,
+    "description": "Fluffy cotton candy in magical colors",
+    "category": "hard",
+    "badge": null
+  },
+  {
+    "id": 4,
+    "name": "Artisan Lollipops",
+    "price": 15.99,
+    "image": "https://images.pexels.com/photos/3737579/pexels-photo-3737579.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.8,
+    "description": "Handmade swirl lollipops with natural flavors",
+    "category": "hard",
+    "badge": "new"
+  },
+  {
+    "id": 5,
+    "name": "Sour Patch Mix",
+    "price": 10.99,
+    "image": "https://images.pexels.com/photos/3737581/pexels-photo-3737581.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.6,
+    "description": "Perfect balance of sour and sweet candies",
+    "category": "sour",
+    "badge": null
+  },
+  {
+    "id": 6,
+    "name": "Caramel Delights",
+    "price": 18.99,
+    "image": "https://images.pexels.com/photos/4110256/pexels-photo-4110256.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.9,
+    "description": "Rich, buttery caramels with sea salt",
+    "category": "chocolate",
+    "badge": null
+  },
+  {
+    "id": 7,
+    "name": "Strawberry Gummies",
+    "price": 9.99,
+    "image": "https://images.pexels.com/photos/3737580/pexels-photo-3737580.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.5,
+    "description": "Fresh strawberry flavored gummy candies",
+    "category": "gummy",
+    "badge": null
+  },
+  {
+    "id": 8,
+    "name": "Dark Chocolate Collection",
+    "price": 32.99,
+    "image": "https://images.pexels.com/photos/65882/chocolate-dark-coffee-confiserie-65882.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.8,
+    "description": "Premium dark chocolate assortment",
+    "category": "chocolate",
+    "badge": "premium"
+  },
+  {
+    "id": 9,
+    "name": "Sour Worms",
+    "price": 7.99,
+    "image": "https://images.pexels.com/photos/4110007/pexels-photo-4110007.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.4,
+    "description": "Tangy sour gummy worms",
+    "category": "sour",
+    "badge": null
+  },
+  {
+    "id": 10,
+    "name": "Peppermint Sticks",
+    "price": 6.99,
+    "image": "https://images.pexels.com/photos/1070946/pexels-photo-1070946.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.3,
+    "description": "Classic peppermint candy sticks",
+    "category": "hard",
+    "badge": null
+  },
+  {
+    "id": 11,
+    "name": "Fruit Jellies",
+    "price": 11.99,
+    "image": "https://images.pexels.com/photos/4110008/pexels-photo-4110008.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.6,
+    "description": "Assorted fruit-flavored jelly candies",
+    "category": "gummy",
+    "badge": null
+  },
+  {
+    "id": 12,
+    "name": "Milk Chocolate Hearts",
+    "price": 16.99,
+    "image": "https://images.pexels.com/photos/1070947/pexels-photo-1070947.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.7,
+    "description": "Creamy milk chocolate heart shapes",
+    "category": "chocolate",
+    "badge": "new"
+  },
+  {
+    "id": 13,
+    "name": "Sour Belts",
+    "price": 8.49,
+    "image": "https://images.pexels.com/photos/4110009/pexels-photo-4110009.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.5,
+    "description": "Chewy sour candy belts",
+    "category": "sour",
+    "badge": null
+  },
+  {
+    "id": 14,
+    "name": "Rock Candy Crystals",
+    "price": 12.49,
+    "image": "https://images.pexels.com/photos/1070948/pexels-photo-1070948.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.2,
+    "description": "Colorful rock candy crystals",
+    "category": "hard",
+    "badge": null
+  },
+  {
+    "id": 15,
+    "name": "Gummy Rings",
+    "price": 9.49,
+    "image": "https://images.pexels.com/photos/4110010/pexels-photo-4110010.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.4,
+    "description": "Peach ring gummy candies",
+    "category": "gummy",
+    "badge": null
+  },
+  {
+    "id": 16,
+    "name": "White Chocolate Truffles",
+    "price": 28.99,
+    "image": "https://images.pexels.com/photos/1070949/pexels-photo-1070949.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.9,
+    "description": "Luxurious white chocolate truffles",
+    "category": "chocolate",
+    "badge": "premium"
+  },
+  {
+    "id": 17,
+    "name": "Sour Patch Kids",
+    "price": 5.99,
+    "image": "https://images.pexels.com/photos/4110011/pexels-photo-4110011.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.6,
+    "description": "Classic sour then sweet candy",
+    "category": "sour",
+    "badge": "popular"
+  },
+  {
+    "id": 18,
+    "name": "Candy Canes",
+    "price": 4.99,
+    "image": "https://images.pexels.com/photos/1070950/pexels-photo-1070950.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.1,
+    "description": "Traditional peppermint candy canes",
+    "category": "hard",
+    "badge": null
+  },
+  {
+    "id": 19,
+    "name": "Gummy Sharks",
+    "price": 10.49,
+    "image": "https://images.pexels.com/photos/4110012/pexels-photo-4110012.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.3,
+    "description": "Blue raspberry gummy sharks",
+    "category": "gummy",
+    "badge": null
+  },
+  {
+    "id": 20,
+    "name": "Chocolate Covered Strawberries",
+    "price": 22.99,
+    "image": "https://images.pexels.com/photos/1070951/pexels-photo-1070951.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.8,
+    "description": "Fresh strawberries dipped in chocolate",
+    "category": "chocolate",
+    "badge": "new"
+  },
+  {
+    "id": 21,
+    "name": "Warheads Extreme Sour",
+    "price": 6.49,
+    "image": "https://images.pexels.com/photos/4110013/pexels-photo-4110013.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.7,
+    "description": "Extremely sour hard candies",
+    "category": "sour",
+    "badge": null
+  },
+  {
+    "id": 22,
+    "name": "Butterscotch Discs",
+    "price": 7.49,
+    "image": "https://images.pexels.com/photos/1070952/pexels-photo-1070952.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.0,
+    "description": "Classic butterscotch hard candy",
+    "category": "hard",
+    "badge": null
+  },
+  {
+    "id": 23,
+    "name": "Haribo Gold Bears",
+    "price": 8.99,
+    "image": "https://images.pexels.com/photos/4110014/pexels-photo-4110014.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 4.8,
+    "description": "Original gummy bear candy",
+    "category": "gummy",
+    "badge": "popular"
+  },
+  {
+    "id": 24,
+    "name": "Luxury Chocolate Box",
+    "price": 45.99,
+    "image": "https://images.pexels.com/photos/1070953/pexels-photo-1070953.jpeg?auto=compress&cs=tinysrgb&w=400",
+    "rating": 5.0,
+    "description": "Premium assorted chocolate collection",
+    "category": "chocolate",
+    "badge": "premium"
+  }
+]
