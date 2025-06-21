@@ -444,8 +444,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Visit Us</h3>
-                    <p class="text-gray-600">123 Sweet Street<br>Candy City, CC 12345</p>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Address</h3>
+                    <p class="text-gray-600">BURDHAMAN<br>Memari, 713146</p>
                 </div>
 
                 <div class="text-center group">
@@ -455,7 +455,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Call Us</h3>
-                    <p class="text-gray-600">(555) 123-SWEET<br>Mon-Sat: 9AM-8PM</p>
+                    <p class="text-gray-600">+91 6297812088 <br>Mon-Sat: 9AM-8PM</p>
                 </div>
 
                 <div class="text-center group">
@@ -465,7 +465,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Email Us</h3>
-                    <p class="text-gray-600">hello@sweetdreams.com<br>We reply within 24hrs</p>
+                    <p class="text-gray-600">business@sweetdreams.com<br>We reply within 24hrs</p>
                 </div>
             </div>
         </div>
