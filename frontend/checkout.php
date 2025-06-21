@@ -211,15 +211,15 @@
                                         <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
                                         <select id="state" required class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none">
                                             <option value="">Select State</option>
-                                            <option value="CA">California</option>
-                                            <option value="NY">New York</option>
-                                            <option value="TX">Texas</option>
-                                            <option value="FL">Florida</option>
+                                            <option value="West_Bengal">West Bengal</option>
+                                            <option value="Gujrat">Gujrat</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Bihar">Bihar</option>
                                             <!-- Add more states as needed -->
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Pin Code</label>
                                         <input type="text" id="zipCode" required class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none">
                                     </div>
                                 </div>
