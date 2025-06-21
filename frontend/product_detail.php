@@ -74,7 +74,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Breadcrumb -->
             <div class="mb-8">
-                <a href="index.html" class="inline-flex items-center text-pink-600 hover:text-pink-700 font-medium">
+                <a href="index.php" class="inline-flex items-center text-pink-600 hover:text-pink-700 font-medium">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -302,120 +302,122 @@
     <!-- Footer -->
     <?php include("inc_files/footer.php"); ?>
 
-    <script>
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const menuIcon = document.getElementById('menu-icon');
-        const closeIcon = document.getElementById('close-icon');
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+    let currentProduct = null;
+    let quantity = 1;
 
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            menuIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
-        });
+    if (!productId) {
+        alert("Product ID not found in URL.");
+    } else {
+        fetchProductDetails(productId);
+    }
 
-        // Quantity controls
-        let quantity = 1;
-        const quantityDisplay = document.getElementById('quantity');
-        const decreaseBtn = document.getElementById('decrease-qty');
-        const increaseBtn = document.getElementById('increase-qty');
+    function fetchProductDetails(id) {
+        fetch("../api/get_product_by_id.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id: parseInt(id) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                const product = data.product;
+                currentProduct = product;
 
-        decreaseBtn.addEventListener('click', () => {
-            if (quantity > 1) {
-                quantity--;
-                quantityDisplay.textContent = quantity;
-            }
-        });
+                document.getElementById("product-image").src = product.image;
+                document.getElementById("product-name").textContent = product.name;
+                document.getElementById("product-price").textContent = `$${product.price}`;
+                document.getElementById("product-description").textContent = product.description;
+                document.getElementById("product-category").textContent = product.category;
 
-        increaseBtn.addEventListener('click', () => {
-            quantity++;
-            quantityDisplay.textContent = quantity;
-        });
+                const ratingValue = parseFloat(product.rating);
+                const fullStars = Math.floor(ratingValue);
+                const ratingContainer = document.getElementById("product-rating");
+                ratingContainer.innerHTML = '';
 
-        // Tab functionality
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
+                for (let i = 0; i < 5; i++) {
+                    const star = document.createElement("svg");
+                    star.className = "h-5 w-5 text-yellow-400 fill-current";
+                    star.setAttribute("viewBox", "0 0 24 24");
+                    star.innerHTML = `<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>`;
+                    if (i >= fullStars) star.classList.remove("fill-current");
+                    ratingContainer.appendChild(star);
+                }
 
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabName = btn.getAttribute('data-tab');
-                
-                // Remove active class from all tabs and contents
-                tabBtns.forEach(b => {
-                    b.classList.remove('tab-active');
-                    b.classList.add('text-gray-500', 'hover:text-gray-700');
-                });
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
-                btn.classList.add('tab-active');
-                btn.classList.remove('text-gray-500', 'hover:text-gray-700');
-                document.getElementById(tabName + '-tab').classList.add('active');
-            });
-        });
-
-        // Wishlist functionality
-        let isWishlisted = false;
-        const wishlistBtn = document.getElementById('wishlist-btn');
-        const wishlistIcon = wishlistBtn.querySelector('svg');
-
-        wishlistBtn.addEventListener('click', () => {
-            isWishlisted = !isWishlisted;
-            if (isWishlisted) {
-                wishlistBtn.classList.remove('border-gray-300', 'text-gray-700');
-                wishlistBtn.classList.add('border-pink-500', 'text-pink-500', 'bg-pink-50');
-                wishlistIcon.classList.add('fill-current');
+                const ratingText = document.createElement("span");
+                ratingText.className = "ml-2 text-gray-600";
+                ratingText.textContent = `(${ratingValue})`;
+                ratingContainer.appendChild(ratingText);
             } else {
-                wishlistBtn.classList.add('border-gray-300', 'text-gray-700');
-                wishlistBtn.classList.remove('border-pink-500', 'text-pink-500', 'bg-pink-50');
-                wishlistIcon.classList.remove('fill-current');
+                alert("Product not found.");
             }
+        })
+        .catch(error => {
+            console.error("Error fetching product:", error);
+            alert("Something went wrong while fetching product details.");
         });
+    }
 
-        // Cart functionality
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    document.getElementById("decrease-qty").addEventListener("click", () => {
+        if (quantity > 1) {
+            quantity--;
+            document.getElementById("quantity").textContent = quantity;
+        }
+    });
 
-        function updateCartCount() {
-            const count = cart.reduce((total, item) => total + item.quantity, 0);
-            document.getElementById('cart-count').textContent = count;
-            document.getElementById('cart-count-mobile').textContent = count;
+    document.getElementById("increase-qty").addEventListener("click", () => {
+        quantity++;
+        document.getElementById("quantity").textContent = quantity;
+    });
+
+    document.getElementById("add-to-cart").addEventListener("click", () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Please log in to add items to your cart.");
+            return;
         }
 
-        // Add to cart
-        document.getElementById('add-to-cart').addEventListener('click', () => {
-            const product = {
-                id: '1',
-                name: 'Rainbow Gummy Bears',
-                price: 12.99,
-                image: 'https://images.pexels.com/photos/5946965/pexels-photo-5946965.jpeg?auto=compress&cs=tinysrgb&w=800',
-                category: 'Gummy Candies'
-            };
+        if (!currentProduct) {
+            alert("Product not loaded yet.");
+            return;
+        }
 
-            const existingItem = cart.find(item => item.id === product.id);
-            if (existingItem) {
-                existingItem.quantity += quantity;
+        fetch("../api/add_to_cart.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                token: token,
+                product_id: currentProduct.id,
+                quantity: quantity
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const btn = document.getElementById("add-to-cart");
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Added to Cart!';
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.transform = 'scale(1)';
+                }, 1000);
             } else {
-                cart.push({ ...product, quantity: quantity });
+                alert(data.message || "Failed to add to cart.");
             }
-
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-
-            // Show feedback
-            const btn = document.getElementById('add-to-cart');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Added to Cart!';
-            btn.style.transform = 'scale(0.95)';
-            
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.transform = 'scale(1)';
-            }, 1000);
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error adding product to cart.");
         });
+    });
+</script>
 
-        // Initialize cart count
-        updateCartCount();
-    </script>
 </body>
 </html>
