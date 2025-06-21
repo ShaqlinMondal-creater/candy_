@@ -535,8 +535,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    cartCount++;
+                if (data.status === "success") {
+                    // cartCount++;
                     alert("Product added to cart!");
                 } else {
                     alert("Failed to add product to cart.");

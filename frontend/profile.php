@@ -648,99 +648,169 @@
     <!-- Footer -->
     <?php include("inc_files/footer.php"); ?>
 
-    <script>
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const menuIcon = document.getElementById('menu-icon');
-        const closeIcon = document.getElementById('close-icon');
+<script>
+// ---------- PROFILE PAGE SCRIPT (Orders + Account tabs only) ----------
+// Runs once DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  /* ------------------------------------------------------------------
+     1. Build the tab navigation so that ONLY two tabs remain
+        – Order History
+        – Account Settings
+  ------------------------------------------------------------------*/
+  const tabNav = document.querySelector(".flex.flex-wrap");
+  if (tabNav) {
+    tabNav.innerHTML = `
+      <button class="tab-btn px-6 py-4 font-medium tab-active" data-tab="orders">Order History</button>
+      <button class="tab-btn px-6 py-4 font-medium text-gray-500 hover:text-gray-700" data-tab="account">Account Settings</button>
+    `;
+  }
 
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            menuIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
-        });
+  /* ------------------------------------------------------------------
+     2. Remove any tab‑content sections we no longer need (overview, wishlist,
+        addresses, etc.) so only #orders-tab and #account-tab stay.
+  ------------------------------------------------------------------*/
+  document.querySelectorAll(".tab-content").forEach(c => {
+    if (!["orders-tab", "account-tab"].includes(c.id)) {
+      c.remove();
+    }
+  });
 
-        // Tab functionality
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
+  /* ------------------------------------------------------------------
+     3. Tab‑switching logic
+  ------------------------------------------------------------------*/
+  const activateTab = tabName => {
+    // toggle button classes
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      if (btn.dataset.tab === tabName) {
+        btn.classList.add("tab-active");
+        btn.classList.remove("text-gray-500");
+      } else {
+        btn.classList.remove("tab-active");
+        btn.classList.add("text-gray-500");
+      }
+    });
 
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabName = btn.getAttribute('data-tab');
-                
-                // Remove active class from all tabs and contents
-                tabBtns.forEach(b => {
-                    b.classList.remove('tab-active');
-                    b.classList.add('text-gray-500', 'hover:text-gray-700');
-                });
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
-                btn.classList.add('tab-active');
-                btn.classList.remove('text-gray-500', 'hover:text-gray-700');
-                document.getElementById(tabName + '-tab').classList.add('active');
-            });
-        });
+    // toggle content visibility
+    document.querySelectorAll(".tab-content").forEach(tc => {
+      tc.classList.toggle("active", tc.id === `${tabName}-tab`);
+    });
+  };
 
-        // Cart functionality
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  document.addEventListener("click", e => {
+    if (e.target.closest(".tab-btn")) {
+      activateTab(e.target.closest(".tab-btn").dataset.tab);
+    }
+  });
 
-        function updateCartCount() {
-            const count = cart.reduce((total, item) => total + item.quantity, 0);
-            document.getElementById('cart-count').textContent = count;
-            document.getElementById('cart-count-mobile').textContent = count;
-        }
+  /* ------------------------------------------------------------------
+     4. ACCOUNT INFO  – pull name / email / mobile from localStorage and
+        populate both the header + the account form.
+  ------------------------------------------------------------------*/
+  const loadAccountInfo = () => {
+    const name   = localStorage.getItem("name")   || "";
+    const email  = localStorage.getItem("email")  || "";
+    const mobile = localStorage.getItem("mobile") || "";
 
-        // Initialize cart count
-        updateCartCount();
+    // header
+    if (name) {
+      const initials = name.split(" ").map(p => p[0]).join("" ).substring(0, 2).toUpperCase();
+      document.getElementById("user-initials").textContent = initials;
+      document.getElementById("user-name").textContent     = name;
+    }
+    if (email)  document.getElementById("user-email").textContent = email;
 
-        // Load user data (placeholder)
-        function loadUserData() {
-            // This would typically load from a database or API
-            const userData = {
-                firstName: 'John',
-                lastName: 'Doe',
-                email: 'john.doe@example.com',
-                sweetPoints: 1250,
-                memberSince: 'Jan 2023'
-            };
+    // account form – first text input is first name, second is last name
+    const accountTab = document.getElementById("account-tab");
+    if (!accountTab) return;
+    const inputs = accountTab.querySelectorAll("input");
+    const [firstInput, lastInput, emailInput, phoneInput] = inputs;
 
-            // Update user initials
-            const initials = userData.firstName.charAt(0) + userData.lastName.charAt(0);
-            document.getElementById('user-initials').textContent = initials;
-            document.getElementById('user-name').textContent = `${userData.firstName} ${userData.lastName}`;
-            document.getElementById('user-email').textContent = userData.email;
-            document.getElementById('sweet-points').textContent = userData.sweetPoints.toLocaleString();
-            document.getElementById('member-since').textContent = userData.memberSince;
-        }
+    const nameParts = name.trim().split(" ");
+    if (firstInput) firstInput.value = nameParts.shift() || "";
+    if (lastInput)  lastInput.value  = nameParts.join(" ");
+    if (emailInput) emailInput.value = email;
+    if (phoneInput) phoneInput.value = mobile;
+  };
 
-        // Form submissions (placeholder)
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                alert('Settings updated successfully!');
-            });
-        });
+  /* ------------------------------------------------------------------
+     5. ORDERS  – fetch from ../api/get_user_orders.php passing token from
+        localStorage and render nicely.
+  ------------------------------------------------------------------*/
+  const loadUserOrders = async () => {
+    const token = localStorage.getItem("token");
+    const ordersTab = document.getElementById("orders-tab");
+    if (!ordersTab) return;
 
-        // Add to cart from wishlist
-        document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('Add to Cart')) {
-                button.addEventListener('click', function() {
-                    // Simple animation feedback
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = 'scale(1)';
-                    }, 150);
-                    
-                    // Add to cart logic would go here
-                    console.log('Added to cart from wishlist!');
-                });
-            }
-        });
+    ordersTab.innerHTML = `<h2 class="text-2xl font-bold text-gray-900 mb-6">Order History</h2>`;
 
-        // Initialize page
-        loadUserData();
-    </script>
+    if (!token) {
+      ordersTab.innerHTML += `<p class="text-gray-500">Please log in to view your orders.</p>`;
+      return;
+    }
+
+    try {
+      const res   = await fetch("../api/get_user_orders.php", {
+        method : "POST",
+        headers: { "Content-Type": "application/json" },
+        body   : JSON.stringify({ token })
+      });
+      const data  = await res.json();
+
+      if (data.status !== "success") {
+        ordersTab.innerHTML += `<p class="text-gray-500">${data.message || "Could not load orders."}</p>`;
+        return;
+      }
+
+      if (!data.orders || !data.orders.length) {
+        ordersTab.innerHTML += `<p class="text-gray-500">No orders found.</p>`;
+        return;
+      }
+
+      data.orders.forEach(order => {
+        const items = order.items || order.cart_items || [];
+        const itemsHTML = items.map(it => `
+          <div class="flex items-center space-x-3">
+            <div>
+              <p class="font-medium text-gray-900">${it.name}</p>
+              <p class="text-gray-600 text-sm">Qty: ${it.quantity}</p>
+            </div>
+          </div>
+        `).join("");
+
+        ordersTab.innerHTML += `
+          <div class="border border-gray-200 rounded-lg p-6 mb-6 bg-white">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">#SD${String(order.order_id).padStart(10, "0")}</h3>
+                <p class="text-gray-600">Placed on ${new Date(order.created_at).toLocaleDateString()}</p>
+                <p class="text-gray-500 text-sm">Status: <strong>${order.order_status}</strong></p>
+              </div>
+              <span class="text-lg font-bold text-gray-900 mt-2 lg:mt-0">₹${parseFloat(order.total).toFixed(2)}</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              ${itemsHTML}
+            </div>
+
+            <div class="text-sm text-gray-600">
+              <p><strong>Payment:</strong> ${order.payment_method}</p>
+              <p><strong>Shipping Charge:</strong> ₹${parseFloat(order.shipping_charge).toFixed(2)}</p>
+              <p><strong>Address:</strong> ${order.shipping_address}</p>
+            </div>
+          </div>`;
+      });
+    } catch (err) {
+      console.error("Order fetch error", err);
+      ordersTab.innerHTML += `<p class="text-gray-500">Error retrieving orders.</p>`;
+    }
+  };
+
+  // ---- RUN EVERYTHING ----
+  loadAccountInfo();
+  loadUserOrders();
+});
+</script>
+
+
 </body>
 </html>
